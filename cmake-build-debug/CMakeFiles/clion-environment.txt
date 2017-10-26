@@ -1,0 +1,5 @@
+ToolSet: 5.0@C:\mingw
+Options: 
+CMake: 3.9.4@C:\Users\mac\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\173.3302.18\bin\cmake\bin\cmake.exe
+
+Options:
