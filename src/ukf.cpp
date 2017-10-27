@@ -294,7 +294,7 @@ void UKF::Update(MeasurementPackage meas_package, MatrixXd Zsig) {
   cout << "Update exit" << endl;
 }
 
-MatrixXd UKF::PredictSigmaPoints(double dt) {
+void UKF::PredictSigmaPoints(double dt) {
   cout << "PredictSigmaPoints enter" << endl;
   VectorXd v1 = VectorXd(n_x_);
   VectorXd v2 = VectorXd(n_x_);

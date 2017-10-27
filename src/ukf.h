@@ -124,7 +124,7 @@ public:
 
   void GenerateAugmentedSigmaPoints();
 
-  MatrixXd PredictSigmaPoints(double dt);
+  void PredictSigmaPoints(double dt);
 
   void PredictMeanAndCovariance();
 
