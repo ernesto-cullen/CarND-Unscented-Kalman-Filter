@@ -1,3 +1,1 @@
-C:\Users\mac\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\173.3302.18\bin\cmake\bin\cmake.exe -E remove -f CMakeFiles\UnscentedKF.dir/objects.a
-C:\mingw\bin\ar.exe cr CMakeFiles\UnscentedKF.dir/objects.a @CMakeFiles\UnscentedKF.dir\objects1.rsp
-C:\mingw\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\UnscentedKF.dir/objects.a -Wl,--no-whole-archive  -o UnscentedKF.exe -Wl,--out-implib,libUnscentedKF.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\UnscentedKF.dir\linklibs.rsp
+/usr/bin/c++  -g   CMakeFiles/UnscentedKF.dir/src/ukf.cpp.o CMakeFiles/UnscentedKF.dir/src/main.cpp.o CMakeFiles/UnscentedKF.dir/src/tools.cpp.o  -o UnscentedKF -lz -lssl -luv -luWS 

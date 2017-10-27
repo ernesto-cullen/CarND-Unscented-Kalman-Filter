@@ -1,3 +1,3 @@
-D:/archi/ernesto/cursos/self-driving car/term2/UKF/CarND-Unscented-Kalman-Filter-Project/cmake-build-debug/CMakeFiles/UnscentedKF.dir
-D:/archi/ernesto/cursos/self-driving car/term2/UKF/CarND-Unscented-Kalman-Filter-Project/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/archi/ernesto/cursos/self-driving car/term2/UKF/CarND-Unscented-Kalman-Filter-Project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/mac/ukf/CarND-Unscented-Kalman-Filter-Project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/mac/ukf/CarND-Unscented-Kalman-Filter-Project/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/mac/ukf/CarND-Unscented-Kalman-Filter-Project/cmake-build-debug/CMakeFiles/UnscentedKF.dir

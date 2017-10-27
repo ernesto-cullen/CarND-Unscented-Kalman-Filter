@@ -1,5 +1,2 @@
-ToolSet: 5.0@C:\mingw
 Options: 
-CMake: 3.9.4@C:\Users\mac\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\173.3302.18\bin\cmake\bin\cmake.exe
-
-Options:
+CMake: 3.8.2@/home/mac/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/172.4343.16/bin/cmake/bin/cmake
