@@ -138,6 +138,14 @@ int main()
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
 //          std::cout << msg << std::endl;
+
+          cout << msgJson.dump() << endl;
+          // output the NIS values
+          if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+            cout << "NIS (laser): " << ukf.NIS_laser_ << endl;
+          } else if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+            cout << "NIS (radar): " << ukf.NIS_radar_ << endl;
+          }
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 	  
         }

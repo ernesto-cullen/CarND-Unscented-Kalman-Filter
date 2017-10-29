@@ -40,3 +40,10 @@ VectorXd Tools::polar2cartesian(VectorXd pos) {
   result << px, py, sqrt(vx*vx+vy*vy), 0, 0;
   return result;
 }
+
+double Tools::Normalize(double angle) {
+  double result = angle;
+  while (result > M_PI) result -= 2.*M_PI;
+  while (result < -M_PI) result += 2.*M_PI;
+  return result;
+}
