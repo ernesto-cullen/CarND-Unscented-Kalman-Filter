@@ -1,46 +1,21 @@
-# Unscented Kalman Filter Project Starter Code
+# Unscented Kalman Filter Project
 Self-Driving Car Engineer Nanodegree Program
 
-In this project utilize an Unscented Kalman Filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project reburic. 
 
-This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
-
-This repository includes two files that can be used to set up and intall [uWebSocketIO](https://github.com/uWebSockets/uWebSockets) for either Linux or Mac systems. For windows you can use either Docker, VMware, or even [Windows 10 Bash on Ubuntu](https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/) to install uWebSocketIO. Please see [this concept in the classroom](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/16cf4a78-4fc7-49e1-8621-3450ca938b77) for the required version and installation scripts.
-
-Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
-
-1. mkdir build
-2. cd build
-3. cmake ..
-4. make
-5. ./UnscentedKF
-
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-
-Note that the programs that need to be written to accomplish the project are src/ukf.cpp, src/ukf.h, tools.cpp, and tools.h
-
-The program main.cpp has already been filled out, but feel free to modify it.
-
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
+In this project we write an Unscented Kalman Filter to estimate the state of a moving object with noisy lidar and radar measurements. Measurements from these two sensors will be fused to improve the estimation.
 
 
-INPUT: values provided by the simulator to the c++ program
+## Dependencies and environment setup
 
-["sensor_measurement"] => the measurment that the simulator observed (either lidar or radar)
+This project uses the [Term 2 Simulator](https://github.com/udacity/self-driving-car-sim/releases). The simulator will show a car doing a predetermined circuit, along with the measurements taken and the estimations computed. The simulator communicates with the project using uWebSockets library to get the estimations as they are calculated, as long as the root mean squared error (RMSE) against the real data (ground thruth).
+
+I had a hard time setting up the environment. I work on Windows 10, but getting uWebSockets to run is difficult on this OS so I tried on a Ubuntu Virtual Machine. I had used this VM in previous EKF project so the uWebSockets library and the simulator were already installed and working. BUT it seems since the EKF project something has changed, either in Linux or in the VM: the simulator won't start anymore. I searched the forums (a lot of people had this problem too), the general web and try different versions of the simulator. Nothing worked.
+Then I tried installing the simulator on Windows (where it runs perfectly) and the code in Bash for Windows 10, which is the setup recommended in Udacity's project instructions. It worked at first, but after some days (I think it was after Win 10 Creator's Update installation) the simulator stopped to communicate with the program running on Bash for Windows.
+Tried also using the simulator on Windows and the program in the VM using [this trick](https://discussions.udacity.com/t/running-simulator-on-windows-and-code-on-ubuntu/255869). Again, this worked at first and after some days it stopped being able to commuicate with the simulator.
+Finally, I had to install a 'real' ubuntu 16.04 in a computer in order to get the simulator working. Using [CLion IDE](https://www.jetbrains.com/clion/) I was able to run the code from inside the IDE while the simulator was running, which made the testing and debugging go much faster and easier. There seems to be some quirks in CLion's internal evaluator as we see some errors in the editor which are not real: we can compile and run without problems.
 
 
-OUTPUT: values provided by the c++ program to the simulator
-
-["estimate_x"] <= kalman filter estimated position x
-["estimate_y"] <= kalman filter estimated position y
-["rmse_x"]
-["rmse_y"]
-["rmse_vx"]
-["rmse_vy"]
-
----
-
-## Other Important Dependencies
+### Other Important Dependencies
 * cmake >= 3.5
   * All OSes: [click here for installation instructions](https://cmake.org/install/)
 * make >= 4.1 (Linux, Mac), 3.81 (Windows)
@@ -52,41 +27,162 @@ OUTPUT: values provided by the c++ program to the simulator
   * Mac: same deal as make - [install Xcode command line tools](https://developer.apple.com/xcode/features/)
   * Windows: recommend using [MinGW](http://www.mingw.org/)
 
-## Basic Build Instructions
+### Basic Build Instructions
 
 1. Clone this repo.
 2. Make a build directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
-4. Run it: `./UnscentedKF` Previous versions use i/o from text files.  The current state uses i/o
-from the simulator.
+4. Run it: `./UnscentedKF`. You'll see a message saying the program is ready listening at port 4567
+5. Start the simulator. Once the simulation starts, you'll see 'Connected!' in the console.
 
-## Editor Settings
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+## The program
 
-## Code Style
+The program will simulate the real process:
 
-Please stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html) as much as possible.
+1. take an initial measurement, use it to initialize the system
+2. predict the next state of the vehicle
+3. get a new measurement, adjust the prediction
+4. repeat from point 2.
 
-## Generating Additional Data
+In this case, the project use a file with entries simulating the sensor measurements, interspersing laser and radar measurements.
 
-This is optional!
 
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
+### Initialization
+The first measurement will be used to initialize the system. Code is found in UKF::ProcessMeasurement method, which takes as input the sensor data for one measure:
 
-## Project Instructions and Rubric
+```C++
+void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
+  //initialize
+  if (!is_initialized_) {
+    previous_timestamp_ = meas_package.timestamp_;
+    P_ = MatrixXd::Identity(n_x_, n_x_);
 
-This information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/c3eb3583-17b2-4d83-abf7-d852ae1b9fff/concepts/f437b8b0-f2d8-43b0-9662-72ac4e4029c1)
-for instructions and the project rubric.
+    if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+      x_ = Tools::polar2cartesian(meas_package.raw_measurements_);
+    }
+    else {
+      x_ << meas_package.raw_measurements_[0], meas_package.raw_measurements_[1], 0., 0., 0.;
+    }
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+    is_initialized_ = true;
+    return;
+  }
+```
+
+the P matrix (covariance matrix) is initialized as the identity matrix, then the state variable is set according to the type of sensor the measurement comes from.
+
+The project uses the CTRV (Constant Turn Rate and Velocity Magnitude) model. The state in this model is a vector of 5 components:
+
+![CTRV state vector](images/state_vector.png)
+
+The magnitudes can be seen in the following graph:
+
+![CTRV state vector](images/ctrv_model.png)
+
+if the initial measurement comes from radar, it will contain the polar coordinates of the vehicule; we have to convert to cartesian coordinates to get the state. This is done in utility class Tools:
+
+ ```C++
+ VectorXd Tools::polar2cartesian(VectorXd pos) {
+   VectorXd result(5);
+   double rho = pos(0);
+   double phi = pos(1);
+   double phi_dot = pos(2);
+
+   double px = rho * cos(phi);
+   double py = rho * sin(phi);
+   double vx = phi_dot * cos(phi);
+   double vy = phi_dot * sin(phi);
+
+   result << px, py, sqrt(vx*vx+vy*vy), 0, 0;
+   return result;
+ }
+```
+
+we can set the position and linear velocity of the object; the yaw angle and its rate are initialized to 0.
+In the case of a Lidar measurement, it only has the cartesian coordinates of the object; again, the missing elements are initialized to 0.
+
+after the first measurement which initializes the state, the next measurement will trigger the Kalman Filter process: predict and update. We need the time elapsed in between two cycles for this. Code is in the same `UKF::ProcessMeasurement` method:
+
+```C++
+  //elapsed time in seconds
+  double dt = (meas_package.timestamp_ - previous_timestamp_) / 1.e6;
+
+  //Predict
+  Prediction(dt);
+
+  //Update
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_) {
+    UpdateRadar(meas_package);
+  } else if (meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_) {
+    UpdateLidar(meas_package);
+  }
+
+  previous_timestamp_ = meas_package.timestamp_;
+```
+
+### Prediction
+The first step of the Kalman cycle is the prediction of the position based on the previous one. In Unscented Kalman Filter, this prediction is based on _sigma points_ to deal with both linear and non linear situations.
+The sigma points are points that are taken in a vicinity of the actual position, with a certain relation to the standard deviation sigma of every state dimension (that's were their name is derived). These points serve as a representation of the current state.
+The sigma points are then transformed to the _predicted state space_, where you can find the mean and the standard deviation of a state that corresponds to these transformed sigma points. This new state will be the _predicted state_.
+
+The prediction step is implemented in `UKF::Prediction` method, called from the same `ProcessMeasurement` as before:
+
+```C++
+void UKF::Prediction(double delta_t) {
+  // sigma points (including process noise)
+  GenerateAugmentedSigmaPoints();
+
+  // predicted sigma points
+  PredictSigmaPoints(delta_t);
+
+  // calculate predicted mean and covariance using predicted sigma points
+  PredictMeanAndCovariance();
+}
+```
+
+As a result of this step, we will get a _predicted state_ and its corresponding deviation.
+
+### Update
+After the prediction, the state is updated with the real measurement. This will bring the estimation much closer to the real value (which is not exactly the measured value because the measurement has noise). As the measurement comes from different sensors, each has to be processed separately
+
+```C++
+  //Update
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_) {
+    UpdateRadar(meas_package);
+  } else if (meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_) {
+    UpdateLidar(meas_package);
+  }
+```
+
+### Error measurement
+After this, the state is sent to the simulator for grafication, while also computing the deviation from the _ground truth_ data which is provided. This deviation is represented by the RMSE (Root Mean Squared Error) which is computed also in Tools class:
+
+```C++
+VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
+                              const vector<VectorXd> &ground_truth) {
+  VectorXd rmse(4);
+  rmse.fill(0);
+
+  for (int k = 0; k < estimations.size(); ++k){
+    VectorXd diff = estimations[k] - ground_truth[k];
+    diff = diff.array() * diff.array();
+    rmse += diff;
+  }
+
+  rmse /= (double)estimations.size();
+  rmse = rmse.array().sqrt();
+
+  return rmse;
+}
+```
+
+This computation is exactly the same as in the EKF project.
+
+
+## Conclusion
+The CTRV model is able to follow very closely the trajectory of the object, with a smooth curve joining the successive states. It is specially well suited for objects that follow linear or circular paths like the car in the simulation.
+
+The UKF allows for the processing of nonlinearities without using linearization like in EKF; just using simple point transformations. For a detailed look at the mathematics, see the course material or other resources like the paper [The Unscented Kalman Filter for Nonlinear Estimation](https://www.seas.harvard.edu/courses/cs281/papers/unscented.pdf) or [this entry on Wikipedia](https://en.wikipedia.org/wiki/Kalman_filter#Unscented_Kalman_filter). The implementation here is based on the course lesson with some small optimizations in the code.
 
